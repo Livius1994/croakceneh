@@ -1,0 +1,539 @@
+import { useState } from "react";
+
+export default function Quiz() {
+  const [answer, setAnswer] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [step, setStep] = useState(1);
+  const [cookiesOpen, setCookiesOpen] = useState(true);
+
+  // ===== [ADICIONADO] Helper para anexar os parâmetros atuais (UTM e afins) ao destino =====
+  const withQuery = (url) => {
+    try {
+      const srcQs = typeof window !== "undefined" ? window.location.search : "";
+      if (!srcQs || srcQs === "?") return url;
+
+      const dest = new URL(
+        url,
+        typeof window !== "undefined" ? window.location.origin : "https://example.com"
+      );
+      const incoming = new URLSearchParams(srcQs);
+      // Faz merge preservando parâmetros que já existam no destino
+      incoming.forEach((val, key) => {
+        if (!dest.searchParams.has(key)) dest.searchParams.set(key, val);
+      });
+      return dest.pathname + (dest.search ? dest.search : "") + (dest.hash || "");
+    } catch {
+      return url;
+    }
+  };
+  // ===== fim helper =====
+
+  const handleSubmit = async () => {
+    setLoading(true);
+
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    const goDefault = async () => {
+      await wait(300);
+      // ===== [ALTERADO MINIMAMENTE] Anexando parâmetros atuais ao /inicio =====
+      window.location.href = withQuery("/inicio");
+    };
+
+    try {
+      // ===== [ADICIONADO] Enviar a query atual também para a rota /api/session-token
+      const res = await fetch(withQuery("/api/session-token"), { method: "POST" });
+      const data = await res.json().catch(() => null);
+
+      if (res.ok && data?.token) {
+        // ===== [ALTERADO MINIMAMENTE] Anexando parâmetros atuais ao /api/go =====
+        window.location.href = withQuery(
+          `/api/go?token=${encodeURIComponent(data.token)}`
+        );
+      } else {
+        await goDefault();
+      }
+    } catch {
+      await goDefault();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="page">
+      <main className="wrapper">
+        <section className="card">
+          <h1 className="title">Verificação de Segurança</h1>
+
+          <div className="iconWrap" aria-hidden="true">
+            <div className="iconCircle">
+              <svg
+                width="64"
+                height="64"
+                viewBox="0 0 24 24"
+                role="img"
+                aria-label="Protegido"
+              >
+                <defs>
+                  {/* ESCUDO EM AZUL */}
+                  <radialGradient id="shieldGrad" cx="50%" cy="30%" r="70%">
+                    <stop offset="0%" stopColor="#3f8efc" stopOpacity="0.98" />
+                    <stop offset="100%" stopColor="#1259c3" stopOpacity="1" />
+                  </radialGradient>
+                  <filter id="shieldGlow" x="-30%" y="-30%" width="160%" height="160%">
+                    <feDropShadow
+                      dx="0"
+                      dy="1"
+                      stdDeviation="1.6"
+                      floodColor="#1259c3"
+                      floodOpacity="0.7"
+                    />
+                  </filter>
+                </defs>
+                {/* Escudo azul */}
+                <path
+                  d="M12 3l7 3v6c0 4.418-3.582 8-7 8s-7-3.582-7-8V6l7-3z"
+                  fill="url(#shieldGrad)"
+                  filter="url(#shieldGlow)"
+                />
+                {/* Sinal correto */}
+                <path
+                  d="M10.6 13.4l-2.1-2.1 1.1-1.1 1 1 3.9-3.9 1.1 1.1-5 5z"
+                  fill="#ffffff"
+                  stroke="#ffffff"
+                  strokeWidth="0.4"
+                  filter="url(#shieldGlow)"
+                />
+              </svg>
+            </div>
+          </div>
+
+          <p className="subtitle">
+            Para continuar, confirme sua identidade com uma verificação rápida em 2 etapas.
+          </p>
+
+          <button
+            className="cta"
+            onClick={() => setModalOpen(true)}
+            aria-haspopup="dialog"
+            aria-controls="modal-root"
+          >
+            INICIAR 2FA
+          </button>
+
+          <nav className="links" aria-label="links-legais">
+            <a href="/politica-de-privacidade">Política de Privacidade</a>
+            <span className="sep">|</span>
+            <a href="/termos-de-uso">Termos de Uso</a>
+          </nav>
+        </section>
+      </main>
+
+      {cookiesOpen && (
+        <div className="cookieBar" role="region" aria-label="cookies">
+          <span>Usamos cookies para manter sua sessão segura e melhorar a experiência.</span>
+          <button
+            type="button"
+            className="cookieBtn"
+            onClick={() => setCookiesOpen(false)}
+          >
+            Entendi
+          </button>
+        </div>
+      )}
+
+      {modalOpen && (
+        <div
+          id="modal-root"
+          className="backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div className="modal popIn">
+            {step === 1 && (
+              <>
+                <h2 id="modal-title" className="modalTitle">
+                  Confirmação em 2 etapas
+                </h2>
+                <p className="modalText">
+                  Vamos validar sua sessão. Isso leva apenas alguns segundos.
+                </p>
+                <button className="primary microTilt" onClick={() => setStep(2)}>
+                  Continuar
+                </button>
+                <button
+                  className="ghost"
+                  onClick={() => {
+                    setModalOpen(false);
+                    setStep(1);
+                    setAnswer("");
+                  }}
+                >
+                  Agora não
+                </button>
+              </>
+            )}
+
+            {step === 2 && (
+              <>
+                <h3 className="sectionOver">Etapa 2 de 2</h3>
+                <h2 className="question">Digite o código: 1 + 2</h2>
+
+                <input
+                  type="text"
+                  value={answer}
+                  onChange={(e) => setAnswer(e.target.value)}
+                  placeholder="Código de verificação"
+                  className="input"
+                />
+
+                <div className="row">
+                  <button
+                    className="primary microTilt"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? "Validando..." : "Confirmar"}
+                  </button>
+                  <button
+                    className="ghost"
+                    onClick={() => {
+                      setStep(1);
+                      setAnswer("");
+                    }}
+                  >
+                    Voltar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ====== GLOBAL: apenas visual (sem alterar lógica) ====== */}
+      <style jsx global>{`
+        html,
+        body,
+        #__next {
+          height: 100%;
+        }
+        * {
+          box-sizing: border-box;
+        }
+        body {
+          margin: 0;
+          background: #ffffff; /* branco */
+          color: #0f172a;
+          font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+        }
+        button,
+        input,
+        a {
+          outline: none;
+        }
+        /* Acessibilidade e navegação por teclado */
+        :focus-visible {
+          outline: 3px solid rgba(18, 89, 195, 0.45); /* azul */
+          outline-offset: 2px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
+          }
+        }
+      `}</style>
+
+      {/* ====== SCOPED: apenas visual (sem alterar lógica) ====== */}
+      <style jsx>{`
+        .page {
+          min-height: 100dvh;
+          display: grid;
+          place-items: center;
+          padding: 32px 16px 96px;
+          background: #f5f9ff; /* branco azulado */
+        }
+
+        .wrapper {
+          width: 100%;
+          display: grid;
+          place-items: center;
+        }
+
+        .card {
+          width: min(720px, 92vw);
+          background: #ffffff;
+          border-radius: 16px;
+          padding: 36px 28px 28px;
+          border: 1px solid rgba(18, 89, 195, 0.18); /* contorno azul */
+          box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+          text-align: center;
+        }
+
+        .title {
+          margin: 0 0 8px;
+          font-size: clamp(22px, 3.6vw, 28px);
+          font-weight: 800;
+          color: #0b1b3a;
+          letter-spacing: 0.2px;
+        }
+
+        .iconWrap {
+          display: grid;
+          place-items: center;
+          margin: 18px 0 10px;
+        }
+        .iconCircle {
+          width: 108px;
+          height: 108px;
+          border-radius: 999px;
+          display: grid;
+          place-items: center;
+          background: radial-gradient(circle at 30% 30%, #ffffff, #e7f0ff 60%, #d7e6ff);
+          border: 1px solid rgba(18, 89, 195, 0.18);
+          box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.04),
+            0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .subtitle {
+          margin: 8px auto 18px;
+          max-width: 560px;
+          color: #334155;
+          font-size: 15.5px;
+          line-height: 1.5;
+        }
+
+        .cta {
+          appearance: none;
+          border: 1px solid #1259c3;
+          cursor: pointer;
+          padding: 12px 22px;
+          border-radius: 10px;
+          background: #1259c3; /* azul */
+          color: #ffffff;
+          font-weight: 800;
+          letter-spacing: 0.2px;
+          font-size: 14.5px;
+          transition: transform 120ms ease, box-shadow 180ms ease, filter 180ms ease,
+            background-color 180ms ease;
+          box-shadow: 0 8px 18px rgba(18, 89, 195, 0.35);
+        }
+        .cta:hover {
+          transform: translateY(-1px);
+          filter: brightness(1.02);
+          box-shadow: 0 10px 22px rgba(18, 89, 195, 0.4);
+        }
+        .cta:active {
+          transform: translateY(0);
+          filter: none;
+        }
+        .cta:focus-visible {
+          box-shadow: 0 0 0 4px rgba(18, 89, 195, 0.25);
+        }
+
+        .links {
+          margin-top: 18px;
+          font-size: 14px;
+        }
+        .links a {
+          color: #1259c3; /* azul links */
+          text-decoration: underline;
+          font-weight: 600;
+        }
+        .links a:hover {
+          opacity: 0.9;
+        }
+        .sep {
+          margin: 0 8px;
+          color: #94a3b8;
+        }
+
+        .cookieBar {
+          position: fixed;
+          left: 50%;
+          transform: translateX(-50%);
+          bottom: 18px;
+          width: min(860px, 92vw);
+          background: #ffffff;
+          color: #1f2937;
+          border-radius: 12px;
+          padding: 14px 16px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          border: 1px solid rgba(18, 89, 195, 0.18);
+          box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+        }
+        .cookieBtn {
+          appearance: none;
+          border: 1px solid #1259c3;
+          cursor: pointer;
+          padding: 10px 18px;
+          border-radius: 8px;
+          background: #1259c3;
+          color: #fff;
+          font-weight: 800;
+          transition: filter 160ms ease, transform 120ms ease, box-shadow 180ms ease;
+          box-shadow: 0 6px 16px rgba(18, 89, 195, 0.35);
+        }
+        .cookieBtn:hover {
+          filter: brightness(1.03);
+          transform: translateY(-1px);
+        }
+        .cookieBtn:active {
+          transform: translateY(0);
+        }
+        .cookieBtn:focus-visible {
+          box-shadow: 0 0 0 4px rgba(18, 89, 195, 0.25);
+        }
+
+        .backdrop {
+          position: fixed;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          background: rgba(2, 10, 25, 0.55); /* azul bem escuro translúcido */
+          backdrop-filter: blur(2px);
+          z-index: 50;
+        }
+        .modal {
+          width: min(92vw, 520px);
+          background: #ffffff;
+          border-radius: 14px;
+          padding: 22px;
+          color: #0f172a;
+          box-shadow: 0 18px 48px rgba(17, 24, 39, 0.18);
+          border: 1px solid rgba(18, 89, 195, 0.16);
+          text-align: center;
+        }
+        .popIn {
+          animation: popIn 180ms ease-out both;
+        }
+        @keyframes popIn {
+          from {
+            opacity: 0;
+            transform: scale(0.985);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+
+        .modalTitle {
+          margin: 4px 0 8px;
+          font-size: clamp(20px, 4vw, 26px);
+          font-weight: 800;
+          color: #0b1b3a;
+        }
+        .modalText {
+          margin: 0 0 18px;
+          color: #374151;
+          line-height: 1.5;
+        }
+        .sectionOver {
+          margin: 2px 0 6px;
+          font-size: 12px;
+          letter-spacing: 0.6px;
+          text-transform: uppercase;
+          color: #1259c3; /* azul */
+        }
+        .question {
+          margin: 0 0 12px;
+          font-size: 20px;
+          font-weight: 800;
+          color: #0b1b3a;
+        }
+        .input {
+          width: 100%;
+          padding: 12px 14px;
+          border-radius: 10px;
+          border: 1px solid rgba(18, 89, 195, 0.42);
+          outline: none;
+          margin: 4px 0 16px;
+          text-align: center;
+          font-size: 16px;
+          background: #ffffff;
+          color: #0f172a;
+          transition: box-shadow 160ms ease, transform 120ms ease,
+            border-color 160ms ease, background-color 160ms ease;
+        }
+        .input::placeholder {
+          color: #9aa3af;
+        }
+        .input:focus-visible {
+          box-shadow: 0 0 0 4px rgba(18, 89, 195, 0.22);
+          border-color: rgba(18, 89, 195, 0.7);
+          transform: translateY(-1px);
+        }
+
+        .row {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .primary {
+          flex: 1;
+          min-width: 160px;
+          appearance: none;
+          border: 1px solid #1259c3;
+          cursor: pointer;
+          padding: 12px 18px;
+          border-radius: 10px;
+          background: #1259c3;
+          color: #ffffff;
+          font-weight: 800;
+          transition: transform 120ms ease, box-shadow 200ms ease, filter 160ms ease;
+          box-shadow: 0 8px 20px rgba(18, 89, 195, 0.35);
+        }
+        .primary:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        .primary:hover:not(:disabled) {
+          transform: translateY(-1px);
+          filter: brightness(1.02);
+        }
+        .primary:active:not(:disabled) {
+          transform: translateY(0);
+        }
+        .primary:focus-visible {
+          box-shadow: 0 0 0 4px rgba(18, 89, 195, 0.25);
+        }
+
+        .ghost {
+          flex: 0 1 auto;
+          min-width: 120px;
+          appearance: none;
+          border: 1px solid rgba(148, 163, 184, 0.8);
+          background: #ffffff;
+          color: #0f172a;
+          cursor: pointer;
+          padding: 12px 18px;
+          border-radius: 10px;
+          transition: background 0.2s ease, transform 0.12s ease,
+            box-shadow 0.18s ease;
+        }
+        .ghost:hover {
+          background: rgba(18, 89, 195, 0.08); /* azul bem clarinho */
+          transform: translateY(-1px);
+        }
+        .ghost:active {
+          transform: translateY(0);
+        }
+        .ghost:focus-visible {
+          box-shadow: 0 0 0 4px rgba(18, 89, 195, 0.22);
+        }
+      `}</style>
+    </div>
+  );
+}
